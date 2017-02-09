@@ -147,7 +147,7 @@ export default class Navigation extends Component {
     let children;
     switch ( typeof button ) {
       case 'string':
-        children = <Text>{ button }</Text>;
+        children = <Text style={styles.navigationBarItem}>{ button }</Text>;
         break;
       case 'function':
         children = button();
@@ -222,13 +222,18 @@ const styles = StyleSheet.create({
   navigationBarButton: {
     flex: 1,
     justifyContent: 'center',
-    paddingLeft: 10,
-    paddingRight: 10,
+    alignItems: 'center',
+    paddingLeft: 14,
+    paddingRight: 14,
   },
   navigationBarTitle: {
     color: '#000',
     fontSize: 17,
     fontWeight: '600',
+  },
+  navigationBarItem: {
+    color: '#444',
+    fontSize: 16,
   },
   component: {
     fontSize: 20,
