@@ -1,53 +1,27 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- * @flow
- */
 
 import React, { Component } from 'react';
-import {
-  AppRegistry,
-  StyleSheet,
-  Text,
-  View
-} from 'react-native';
+import { AppRegistry } from 'react-native';
+
+import Navigation from './components/Navigation';
+import Controller from './components/Controller';
+
+import NavigationLogo from './components/NavigationLogo';
+import NavigationMenu from './components/NavigationMenu';
+import NavigationSearch from './components/NavigationSearch';
+
+import Home from './ui/Home';
+import Photo from './ui/Photo';
 
 export default class px extends Component {
+
   render() {
     return (
-      <View style={styles.container}>
-        <Text style={styles.welcome}>
-          Welcome to React Native!
-        </Text>
-        <Text style={styles.instructions}>
-          To get started, edit index.ios.js
-        </Text>
-        <Text style={styles.instructions}>
-          Press Cmd+R to reload,{'\n'}
-          Cmd+D or shake for dev menu
-        </Text>
-      </View>
+      <Navigation>
+        <Controller id="home" title={<NavigationLogo />} leftButton={<NavigationMenu />} rightButton={<NavigationSearch />} component={Home} />
+        <Controller id="photo" title="Photo" component={Photo} />
+      </Navigation>
     );
   }
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F5FCFF',
-  },
-  welcome: {
-    fontSize: 20,
-    textAlign: 'center',
-    margin: 10,
-  },
-  instructions: {
-    textAlign: 'center',
-    color: '#333333',
-    marginBottom: 5,
-  },
-});
 
 AppRegistry.registerComponent('px', () => px);
