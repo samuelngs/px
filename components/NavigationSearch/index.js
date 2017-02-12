@@ -2,7 +2,7 @@
 import React, { Component } from 'react';
 import { Image, StyleSheet } from 'react-native';
 
-import source from '../../assets/icons/search_857956.png';
+import source from 'px/assets/icons/search_857956.png';
 
 export default class NavigationSearch extends Component {
 

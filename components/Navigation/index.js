@@ -2,7 +2,7 @@
 import React, { Component } from 'react';
 import { Navigator, TouchableHighlight, View, Text, StyleSheet } from 'react-native';
 
-import Controller from '../Controller';
+import Controller from 'px/components/Controller';
 import navigationStyles from './styles';
 
 export default class Navigation extends Component {

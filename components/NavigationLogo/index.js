@@ -2,7 +2,7 @@
 import React, { Component } from 'react';
 import { Image, StyleSheet } from 'react-native';
 
-import source from '../../assets/logo/Icon-60.png';
+import source from 'px/assets/logo/Icon-60.png';
 
 export default class NavigationLogo extends Component {
 

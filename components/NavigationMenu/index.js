@@ -2,7 +2,7 @@
 import React, { Component } from 'react';
 import { Image, StyleSheet } from 'react-native';
 
-import source from '../../assets/icons/menu_705120.png';
+import source from 'px/assets/icons/menu_705120.png';
 
 export default class NavigationMenu extends Component {
 
