@@ -13,6 +13,7 @@ export default class ImageList extends Component {
     id : 'image-list',
     images: [ ],
     showsScrollIndicator: true,
+    padding: 0,
     radius: 0,
     offset: {
       top: 0,
@@ -20,6 +21,7 @@ export default class ImageList extends Component {
       left: 0,
       right: 0,
     },
+    lightbox: false,
     onImagePress: () => { },
     onMenuPress: () => { },
     onAuthorPress: () => { },
@@ -29,6 +31,7 @@ export default class ImageList extends Component {
     id: React.PropTypes.string,
     images: React.PropTypes.array.isRequired,
     showsScrollIndicator: React.PropTypes.bool,
+    padding: React.PropTypes.number,
     radius: React.PropTypes.number,
     offset: React.PropTypes.shape({
       top: React.PropTypes.number,
@@ -36,6 +39,7 @@ export default class ImageList extends Component {
       left: React.PropTypes.number,
       right: React.PropTypes.number,
     }),
+    lightbox: React.PropTypes.bool,
     onImagePress: React.PropTypes.func,
     onMenuPress: React.PropTypes.func,
     onAuthorPress: React.PropTypes.func,
@@ -82,9 +86,9 @@ export default class ImageList extends Component {
   }
 
   renderRow(src) {
-    const { id, onAuthorPress, onMenuPress, onImagePress } = this.props;
+    const { id, padding, radius, lightbox, onAuthorPress, onMenuPress, onImagePress } = this.props;
     const { dimensions } = this.state;
-    return <ImageItem host={id} src={src} dimensions={dimensions} padding={10} radius={3} onAuthorPress={onAuthorPress} onMenuPress={onMenuPress} onImagePress={onImagePress} />
+    return <ImageItem host={id} src={src} dimensions={dimensions} padding={padding} radius={radius} lightbox={lightbox} onAuthorPress={onAuthorPress} onMenuPress={onMenuPress} onImagePress={onImagePress} />
   }
 
   render() {

@@ -1,6 +1,10 @@
 
 import React, { Component } from 'react';
 import { View, Image, ScrollView, TouchableHighlight, StyleSheet, Dimensions, InteractionManager } from 'react-native';
+import Lightbox from 'react-native-lightbox';
+
+import { LazyloadScrollView } from 'react-native-lazyload';
+import ProgressiveImage from 'px/components/ProgressiveImage';
 
 import offset from './offset';
 
@@ -9,6 +13,7 @@ const suggestColumnWidth = 200;
 export default class ImageGrid extends Component {
 
   static defaultProps = {
+    id : 'image-grid',
     images: [ ],
     maxColumnWidth: 250,
     minColumnCount: 2,
@@ -16,6 +21,7 @@ export default class ImageGrid extends Component {
     columnGap: 4,
     showsScrollIndicator: true,
     radius: 0,
+    lightbox: false,
     offset: {
       top: 0,
       bottom: 0,
@@ -26,6 +32,7 @@ export default class ImageGrid extends Component {
   }
 
   static propTypes = {
+    id: React.PropTypes.string,
     images: React.PropTypes.array.isRequired,
     maxColumnWidth: React.PropTypes.number,
     minColumnCount: React.PropTypes.number,
@@ -33,6 +40,7 @@ export default class ImageGrid extends Component {
     columnGap: React.PropTypes.number,
     showsScrollIndicator: React.PropTypes.bool,
     radius: React.PropTypes.number,
+    lightbox: React.PropTypes.bool,
     offset: React.PropTypes.shape({
       top: React.PropTypes.number,
       bottom: React.PropTypes.number,
@@ -92,16 +100,26 @@ export default class ImageGrid extends Component {
     return this.setState({ dataSources });
   }
 
+  renderFullscreen(src) {
+    const { id } = this.props;
+    return <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.container}
+      minimumZoomScale={1}
+      maximumZoomScale={4}
+      centerContent={true}
+    >
+      <Image style={styles.container} resizeMode="contain" source={{ uri: src.urls.regular }} />
+    </ScrollView>
+  }
+
   renderImage(src, i, imageWidth) {
-    const { columnGap, radius, onPress } = this.props;
+    const { id, columnGap, radius, lightbox, onPress } = this.props;
     const height = imageWidth / src.width * src.height;
-    return <TouchableHighlight key={ i } style={{ width: imageWidth, height, margin: columnGap }} underlayColor="transparent" onPress={() => onPress(src)}>
-      <Image
-        style={{ borderRadius: radius, backgroundColor: src.color, width: imageWidth, height }}
-        source={{ uri: src.urls.small }}
-        resizeMode="cover"
-      />
-    </TouchableHighlight>
+    const Component = lightbox ? Lightbox : TouchableHighlight;
+    return <Component key={ i } style={{ width: imageWidth, height, margin: columnGap }} underlayColor="transparent" springConfig={{ tension: 50, friction: 10 }} renderContent={() => this.renderFullscreen(src)} onPress={() => onPress(src)}>
+      <ProgressiveImage host={id} width={imageWidth} height={height} radius={radius} bg={src.color} uri={src.urls.small} />
+    </Component>
   }
 
   renderColumn(ds, i, columnWidth, imageWidth) {
@@ -111,13 +129,14 @@ export default class ImageGrid extends Component {
   }
 
   render() {
-    const { maxColumnWidth, columnGap, showsScrollIndicator, offset: preLayoutOffset } = this.props;
+    const { id, maxColumnWidth, columnGap, showsScrollIndicator, offset: preLayoutOffset } = this.props;
     const layoutOffset = { top: 0, bottom: 0, left: 0, right: 0, ...preLayoutOffset };
     const { dimensions: { width }, dataSources } = this.state;
     const avgColumnWidth = width / dataSources.length;
     const actlColumnWidth = (avgColumnWidth > maxColumnWidth ? maxColumnWidth : avgColumnWidth) - columnGap;
     const actlImageWidth = actlColumnWidth - columnGap * 2;
-    return <ScrollView
+    return <LazyloadScrollView
+      name={id}
       style={[styles.container, { paddingTop: offset + columnGap + layoutOffset.top }]}
       removeClippedSubviews={true}
       showsHorizontalScrollIndicator={showsScrollIndicator}
@@ -128,7 +147,7 @@ export default class ImageGrid extends Component {
       <View style={[ styles.wrapper, { marginRight: columnGap, marginLeft: columnGap, paddingBottom: columnGap * 2 + layoutOffset.bottom }]}>
         { dataSources.map((ds, i) => this.renderColumn(ds, i, actlColumnWidth, actlImageWidth)) }
       </View>
-    </ScrollView>
+    </LazyloadScrollView>
   }
 
 }
