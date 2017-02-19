@@ -1,15 +1,16 @@
 
 import React, { Component } from 'react';
-import { View, Text, Image, ScrollView, TouchableHighlight, StyleSheet, Dimensions, InteractionManager } from 'react-native';
+import { View, Text, ListView, TouchableHighlight, StyleSheet, Dimensions, InteractionManager } from 'react-native';
+import { LazyloadListView } from 'react-native-lazyload';
+
+import ImageItem from './ImageItem';
 
 import offset from './offset';
-
-const rowHeight = 200;
-const rowInfoHeight = 54;
 
 export default class ImageList extends Component {
 
   static defaultProps = {
+    id : 'image-list',
     images: [ ],
     showsScrollIndicator: true,
     radius: 0,
@@ -19,10 +20,13 @@ export default class ImageList extends Component {
       left: 0,
       right: 0,
     },
-    onPress: () => { },
+    onImagePress: () => { },
+    onMenuPress: () => { },
+    onAuthorPress: () => { },
   }
 
   static propTypes = {
+    id: React.PropTypes.string,
     images: React.PropTypes.array.isRequired,
     showsScrollIndicator: React.PropTypes.bool,
     radius: React.PropTypes.number,
@@ -32,7 +36,9 @@ export default class ImageList extends Component {
       left: React.PropTypes.number,
       right: React.PropTypes.number,
     }),
-    onPress: React.PropTypes.func,
+    onImagePress: React.PropTypes.func,
+    onMenuPress: React.PropTypes.func,
+    onAuthorPress: React.PropTypes.func,
   }
 
   state = {
@@ -40,7 +46,25 @@ export default class ImageList extends Component {
       height: Dimensions.get('window').height,
       width: Dimensions.get('window').width,
     },
-    dataSources: [ ],
+    dataSource: new ListView.DataSource({
+      rowHasChanged: (r1, r2) => r1 !== r2,
+    }),
+  }
+
+  initialDataSource(images) {
+    const { dataSource } = this.state;
+    return this.setState({ dataSource: dataSource.cloneWithRows(images) });
+  }
+
+  componentDidMount() {
+    InteractionManager.runAfterInteractions(() => {
+      const { images } = this.props;
+      this.initialDataSource(images);
+    });
+  }
+
+  componentWillReceiveProps({ images }) {
+    this.initialDataSource(images);
   }
 
   componentLayoutUpdate(e) {
@@ -57,52 +81,34 @@ export default class ImageList extends Component {
     });
   }
 
-  renderInfo(src) {
-    return <View style={styles.infoContainer}>
-      <Image
-        style={styles.avatar}
-        source={{ uri: src.user.profile_image.medium }}
-        resizeMode="cover"
-      />
-      <View style={styles.content}>
-        <Text style={styles.name}>{ src.user.name }</Text>
-        <Text style={styles.location}>{ src.user.location || (src.user.likes > 0 && `liked ${src.user.likes} photos`) || src.created_at }</Text>
-      </View>
-    </View>
-  }
-
-  renderImage(src) {
-    return <TouchableHighlight style={styles.image} underlayColor="transparent">
-      <Image
-        style={[styles.image, { backgroundColor: src.color }]}
-        source={{ uri: src.urls.regular }}
-        resizeMode="cover"
-      />
-    </TouchableHighlight>
-  }
-
-  renderRow(src, i) {
-    return <View key={i} style={styles.item}>
-      { this.renderInfo(src) }
-      { this.renderImage(src) }
-    </View>
+  renderRow(src) {
+    const { id, onAuthorPress, onMenuPress, onImagePress } = this.props;
+    const { dimensions } = this.state;
+    return <ImageItem host={id} src={src} dimensions={dimensions} padding={10} radius={3} onAuthorPress={onAuthorPress} onMenuPress={onMenuPress} onImagePress={onImagePress} />
   }
 
   render() {
-    const { images, showsScrollIndicator, offset: preLayoutOffset } = this.props;
+    const { dataSource } = this.state;
+    const { id, images, showsScrollIndicator, offset: preLayoutOffset } = this.props;
     const layoutOffset = { top: 0, bottom: 0, left: 0, right: 0, ...preLayoutOffset };
-    return <ScrollView
+    return <LazyloadListView
+      name={id}
+      stickyHeaderIndices={[]}
+      contentContainerStyle={{ paddingBottom: layoutOffset.bottom }}
+      initialListSize={images.length}
+      onEndReachedThreshold={0}
+      pageSize={0}
+      renderScrollComponent={() => null}
+      scrollRenderAheadDistance={100}
       style={[styles.container, { paddingTop: offset + layoutOffset.top }]}
       removeClippedSubviews={true}
       showsHorizontalScrollIndicator={showsScrollIndicator}
       showsVerticalScrollIndicator={showsScrollIndicator}
       scrollIndicatorInsets={{ top: offset + layoutOffset.top, bottom: layoutOffset.bottom }}
       onLayout={(e) => this.componentLayoutUpdate(e)}
-    >
-      <View style={[ styles.wrapper, { paddingBottom: layoutOffset.bottom }]}>
-        { images.map((image, i) => this.renderRow(image, i)) }
-      </View>
-    </ScrollView>
+      dataSource={dataSource}
+      renderRow={data => this.renderRow(data)}
+    />
   }
 
 }
@@ -110,38 +116,6 @@ export default class ImageList extends Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  wrapper: {
-    flexDirection: 'column',
-  },
-  item: {
-  },
-  infoContainer: {
-    height: rowInfoHeight,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingLeft: 10,
-    paddingRight: 10,
-  },
-  content: {
-    flexDirection: 'column',
-  },
-  name: {
-    fontSize: 14,
-    color: '#555',
-  },
-  location: {
-    fontSize: 10,
-    fontWeight: '500',
-  },
-  image: {
-    height: 300,
-  },
-  avatar: {
-    height: 30,
-    width: 30,
-    borderRadius: 15,
-    marginRight: 10,
   },
 });
 
