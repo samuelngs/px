@@ -47,6 +47,7 @@ export default class Navigation extends Component {
 
   actions(navigator, controllers) {
     return {
+      ui: () => navigator,
       push: (targetId, args) => {
         let opts;
         for ( const { props } of controllers ) {
@@ -208,7 +209,7 @@ const styles = StyleSheet.create({
   },
   navigationBar: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderBottomWidth: .5,
     borderBottomColor: 'rgba(0, 0, 0, 0.07)',
   },
