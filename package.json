@@ -9,8 +9,8 @@
   "dependencies": {
     "react": "~15.4.0",
     "react-native": "0.41.2",
+    "react-navigation": "1.0.0-beta.5",
     "react-native-lazyload": "1.1.0",
-    "react-native-lightbox": "0.6.0",
     "unsplash-js": "4.5.0",
     "moment": "2.17.1"
   },
