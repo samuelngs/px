@@ -18,7 +18,7 @@ export default class NavigationMenu extends Component {
 
 const styles = StyleSheet.create({
   base: {
-    marginLeft: -5,
+    marginLeft: 5,
     height: 34,
     width: 34,
     backgroundColor: 'transparent',

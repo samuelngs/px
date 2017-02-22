@@ -18,7 +18,7 @@ export default class NavigationSearch extends Component {
 
 const styles = StyleSheet.create({
   base: {
-    marginRight: -5,
+    marginRight: 5,
     height: 30,
     width: 30,
     backgroundColor: 'transparent',
