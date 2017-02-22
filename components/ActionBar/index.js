@@ -1,6 +1,6 @@
 
 import React, { Component } from 'react';
-import { View, StyleSheet, Dimensions, InteractionManager } from 'react-native';
+import { Animated, View, StyleSheet, Dimensions, InteractionManager } from 'react-native';
 
 export default class ActionBar extends Component {
 
@@ -25,8 +25,21 @@ export default class ActionBar extends Component {
     },
   }
 
+  setNativeProps(props) {
+    this.node && this.node.setNativeProps(props);
+  }
+
+  componentDidMount() {
+    this._mount = true;
+  }
+
+  componentWillUnmount() {
+    this._mount = false;
+  }
+
   componentLayoutUpdate(e) {
     InteractionManager.runAfterInteractions(() => {
+      if ( !this._mount ) return;
       const { height, width } = Dimensions.get('window');
       const dimensions = {
         height,
@@ -41,11 +54,11 @@ export default class ActionBar extends Component {
   render() {
     const { style, left, right, center } = this.props;
     const { dimensions: { width } } = this.state;
-    return <View style={[styles.container, style.position === 'absolute' && { width }, style]} onLayout={(e) => this.componentLayoutUpdate(e)}>
+    return <Animated.View ref={n => this.node = n} style={[styles.container, { width }, style]} onLayout={(e) => this.componentLayoutUpdate(e)}>
       <View style={[styles.column, styles.left]}>{ left }</View>
       <View style={[styles.column, styles.center]}>{ center }</View>
       <View style={[styles.column, styles.right]}>{ right }</View>
-    </View>
+    </Animated.View>
   }
 
 }
@@ -53,8 +66,18 @@ export default class ActionBar extends Component {
 const styles = StyleSheet.create({
   container: {
     height: 46,
-    backgroundColor: 'rgba(255, 255, 255, 0.96)',
+    backgroundColor: '#fff',
+    shadowRadius: .5,
+    shadowOpacity: 1,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 0,
+    },
     flexDirection: 'row',
+    position: 'absolute',
+    bottom: 0,
+    zIndex: 20,
   },
   column: {
     flex: 1,
