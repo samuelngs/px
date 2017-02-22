@@ -4,11 +4,13 @@ import { View, StyleSheet } from 'react-native';
 
 import ImageInfo from './ImageInfo';
 import ImageDisplay from './ImageDisplay';
+import ImageActionBar from './ImageActionBar';
 
 export default class ImageItem extends Component {
 
   static defaultProps = {
     host: '',
+    route: '',
     src: { },
     dimensions: {
       width: 0,
@@ -16,7 +18,6 @@ export default class ImageItem extends Component {
     },
     padding: 0,
     radius: 0,
-    lightbox: false,
     onImagePress: () => { },
     onMenuPress: () => { },
     onAuthorPress: () => { },
@@ -24,6 +25,7 @@ export default class ImageItem extends Component {
 
   static propTypes = {
     host: React.PropTypes.string,
+    route: React.PropTypes.string,
     src: React.PropTypes.object,
     dimensions: React.PropTypes.shape({
       width: React.PropTypes.number,
@@ -31,17 +33,17 @@ export default class ImageItem extends Component {
     }),
     padding: React.PropTypes.number,
     radius: React.PropTypes.number,
-    lightbox: React.PropTypes.bool,
     onImagePress: React.PropTypes.func,
     onMenuPress: React.PropTypes.func,
     onAuthorPress: React.PropTypes.func,
   }
 
   render() {
-    const { host, src, dimensions, padding, radius, lightbox, onAuthorPress, onMenuPress, onImagePress } = this.props;
+    const { host, route, src, dimensions, padding, radius, onAuthorPress, onMenuPress, onImagePress } = this.props;
     return <View style={styles.base}>
-      <ImageInfo host={host} src={src} dimensions={dimensions} padding={padding} onAuthorPress={onAuthorPress} onMenuPress={onMenuPress} />
-      <ImageDisplay host={host} src={src} dimensions={dimensions} padding={padding} radius={radius} lightbox={lightbox} onPress={onImagePress} />
+      <ImageDisplay host={host} route={route} src={src} dimensions={dimensions} padding={padding} radius={radius} onPress={onImagePress} />
+      <ImageInfo host={host} route={route} src={src} dimensions={dimensions} padding={padding} onAuthorPress={onAuthorPress} onMenuPress={onMenuPress} />
+      <ImageActionBar host={host} route={route} src={src} dimensions={dimensions} padding={padding} />
     </View>
   }
 
@@ -49,6 +51,14 @@ export default class ImageItem extends Component {
 
 const styles = StyleSheet.create({
   base: {
-    marginBottom: 10,
+    marginBottom: 14,
+    shadowRadius: 0,
+    shadowOpacity: 1,
+    shadowColor: 'rgba(0, 0, 0, 0.2)',
+    shadowOffset: {
+      width: 0,
+      height: 0,
+    },
+    backgroundColor: '#fff',
   },
 });

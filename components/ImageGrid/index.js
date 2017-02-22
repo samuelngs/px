@@ -1,10 +1,11 @@
 
 import React, { Component } from 'react';
-import { View, Image, ScrollView, TouchableHighlight, StyleSheet, Dimensions, InteractionManager } from 'react-native';
-import Lightbox from 'react-native-lightbox';
+import { View, Image, ScrollView, TouchableOpacity, TouchableHighlight, StyleSheet, Dimensions, InteractionManager } from 'react-native';
+import { LazyloadScrollView, LazyloadView } from 'react-native-lazyload';
 
-import { LazyloadScrollView } from 'react-native-lazyload';
-import ProgressiveImage from 'px/components/ProgressiveImage';
+import Touchable from 'px/components/Touchable';
+import { SharedView } from 'px/components/Navigation';
+import ProgressiveTransitionImage from 'px/components/ProgressiveTransitionImage';
 
 import offset from './offset';
 
@@ -14,6 +15,7 @@ export default class ImageGrid extends Component {
 
   static defaultProps = {
     id : 'image-grid',
+    route: '',
     images: [ ],
     maxColumnWidth: 250,
     minColumnCount: 2,
@@ -21,7 +23,6 @@ export default class ImageGrid extends Component {
     columnGap: 4,
     showsScrollIndicator: true,
     radius: 0,
-    lightbox: false,
     offset: {
       top: 0,
       bottom: 0,
@@ -33,6 +34,7 @@ export default class ImageGrid extends Component {
 
   static propTypes = {
     id: React.PropTypes.string,
+    route: React.PropTypes.string,
     images: React.PropTypes.array.isRequired,
     maxColumnWidth: React.PropTypes.number,
     minColumnCount: React.PropTypes.number,
@@ -40,7 +42,6 @@ export default class ImageGrid extends Component {
     columnGap: React.PropTypes.number,
     showsScrollIndicator: React.PropTypes.bool,
     radius: React.PropTypes.number,
-    lightbox: React.PropTypes.bool,
     offset: React.PropTypes.shape({
       top: React.PropTypes.number,
       bottom: React.PropTypes.number,
@@ -77,19 +78,27 @@ export default class ImageGrid extends Component {
   }
 
   initialDataSource(images) {
-    const { minColumnCount, maxColumnCount } = this.props;
+    const { minColumnCount, maxColumnCount, columnGap } = this.props;
     const { dimensions: { width }, dataSources: predataSource } = this.state;
     const count = Math.floor(width / suggestColumnWidth);
     const columns = count >= minColumnCount ? (count > maxColumnCount ? maxColumnCount : count ) : minColumnCount;
     const sources = [ ...Array(columns) ].map(_ => []);
+    const heights = [ ...Array(columns) ].map(_ => 0);
+    const avgWidth = width / columns;
     const dataSources = [ ...predataSource ];
-    let pos = 0;
     for ( const [ index, value ] of images.entries() ) {
-      sources[ pos ].push(value);
-      pos++;
-      if ( pos >= columns ) {
-        pos = 0;
+      const { width: imageWidth, height: imageHeight } = value;
+      const actualHeight = avgWidth / imageWidth * imageHeight;
+      let lheight = heights[0];
+      let lindex = 0;
+      for ( const [ index, height ] of heights.entries() ) {
+        if ( height < lheight ) {
+          lheight = height;
+          lindex = index;
+        }
       }
+      heights[lindex] += actualHeight;
+      sources[lindex].push(value);
     }
     for ( let i = columns; i < dataSources.length; i++ ) {
       dataSources.splice(i, 1);
@@ -100,26 +109,12 @@ export default class ImageGrid extends Component {
     return this.setState({ dataSources });
   }
 
-  renderFullscreen(src) {
-    const { id } = this.props;
-    return <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.container}
-      minimumZoomScale={1}
-      maximumZoomScale={4}
-      centerContent={true}
-    >
-      <Image style={styles.container} resizeMode="contain" source={{ uri: src.urls.regular }} />
-    </ScrollView>
-  }
-
   renderImage(src, i, imageWidth) {
-    const { id, columnGap, radius, lightbox, onPress } = this.props;
+    const { id, route, columnGap, radius, onPress } = this.props;
     const height = imageWidth / src.width * src.height;
-    const Component = lightbox ? Lightbox : TouchableHighlight;
-    return <Component key={ i } style={{ width: imageWidth, height, margin: columnGap }} underlayColor="transparent" springConfig={{ tension: 50, friction: 10 }} renderContent={() => this.renderFullscreen(src)} onPress={() => onPress(src)}>
-      <ProgressiveImage host={id} width={imageWidth} height={height} radius={radius} bg={src.color} uri={src.urls.small} />
-    </Component>
+    return <TouchableOpacity key={ i } style={{ width: imageWidth, height, margin: columnGap }} activeOpacity={1} focusedOpacity={1} onPress={() => onPress(src)}>
+      <ProgressiveTransitionImage name={src.id} route={route} source={{ uri: src.urls.small }} wrapper={LazyloadView} options={{ host: id, style: { width: imageWidth, height }}} style={{ width: imageWidth, height, borderRadius: radius }} containerStyle={{ width: imageWidth, height, backgroundColor: src.color, borderRadius: radius }} />
+    </TouchableOpacity>
   }
 
   renderColumn(ds, i, columnWidth, imageWidth) {

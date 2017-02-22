@@ -1,14 +1,16 @@
 
 import React, { Component } from 'react';
-import { Image, ScrollView, TouchableHighlight, StyleSheet } from 'react-native';
-import Lightbox from 'react-native-lightbox';
+import { StyleSheet } from 'react-native';
+import { LazyloadView } from 'react-native-lazyload';
 
-import ProgressiveImage from 'px/components/ProgressiveImage';
+import Touchable from 'px/components/Touchable';
+import ProgressiveTransitionImage from 'px/components/ProgressiveTransitionImage';
 
 export default class ImageDisplay extends Component {
 
   static defaultProps = {
     host: '',
+    route: '',
     src: { },
     dimensions: {
       width: 0,
@@ -16,12 +18,12 @@ export default class ImageDisplay extends Component {
     },
     padding: 0,
     radius: 0,
-    lightbox: false,
     onPress: () => { },
   }
 
   static propTypes = {
     host: React.PropTypes.string,
+    route: React.PropTypes.string,
     src: React.PropTypes.object,
     dimensions: React.PropTypes.shape({
       width: React.PropTypes.number,
@@ -29,32 +31,17 @@ export default class ImageDisplay extends Component {
     }),
     padding: React.PropTypes.number,
     radius: React.PropTypes.number,
-    lightbox: React.PropTypes.bool,
     onPress: React.PropTypes.func,
   }
 
-  renderFullscreen(src) {
-    const { id } = this.props;
-    return <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.container}
-      minimumZoomScale={1}
-      maximumZoomScale={4}
-      centerContent={true}
-    >
-      <Image style={styles.container} resizeMode="contain" source={{ uri: src.urls.regular }} />
-    </ScrollView>
-  }
-
   render() {
-    const { host, src, dimensions: { width: screenWidth }, padding, radius, lightbox, onPress } = this.props;
+    const { host, route, src, dimensions: { width: screenWidth }, padding, radius, onPress } = this.props;
     const { color, width: imageWidth, height: imageHeight, urls: { regular: imageURL } } = src;
     const targetWidth = screenWidth - padding * 2;
     const targetHeight = targetWidth / imageWidth * imageHeight;
-    const Component = lightbox ? Lightbox : TouchableHighlight;
-    return <Component style={{ marginLeft: padding, marginRight: padding }} underlayColor="transparent" springConfig={{ tension: 50, friction: 10 }} renderContent={() => this.renderFullscreen(src)} onPress={() => onPress(src)}>
-      <ProgressiveImage host={host} width={targetWidth} height={targetHeight} bg={color} radius={radius} uri={imageURL} />
-    </Component>
+    return <Touchable style={{ marginLeft: padding, marginRight: padding }} underlayColor="transparent" onPress={() => onPress(src)}>
+      <ProgressiveTransitionImage name={src.id} route={route} source={{ uri: src.urls.regular }} wrapper={LazyloadView} mask={true} options={{ host, style: { width: targetWidth, height: targetHeight }}} style={{ width: targetWidth, height: targetHeight, borderRadius: radius }} containerStyle={{ width: targetWidth, height: targetHeight, backgroundColor: src.color, borderRadius: radius }} />
+    </Touchable>
   }
 
 }

@@ -10,6 +10,7 @@ export default class ImageInfo extends Component {
 
   static defaultProps = {
     host: '',
+    route: '',
     src: { },
     dimensions: {
       width: 0,
@@ -22,6 +23,7 @@ export default class ImageInfo extends Component {
 
   static propTypes = {
     host: React.PropTypes.string,
+    route: React.PropTypes.string,
     src: React.PropTypes.object,
     dimensions: React.PropTypes.shape({
       width: React.PropTypes.number,
@@ -52,8 +54,8 @@ export default class ImageInfo extends Component {
     const { host, src, padding, onAuthorPress, onMenuPress } = this.props;
     const { user: { name, profile_image: { medium: avatarURL } } } = src;
     const paddingUnit = padding > 10 ? padding : 10;
-    return <View style={[styles.base, { paddingLeft: paddingUnit, paddingRight: paddingUnit }]}>
-      <ProgressiveImage host={host} radius={15} width={30} height={30} bg="#eee" uri={avatarURL} />
+    return <View style={[styles.base, { marginLeft: paddingUnit, marginRight: paddingUnit }]}>
+      <ProgressiveImage host={host} bg="#eee" source={avatarURL} style={{ width:30, height: 30, borderRadius: 15 }} />
       <TouchableHighlight style={styles.fill} underlayColor="transparent" onPress={() => onAuthorPress(src)}>
         <View style={styles.details}>
           <Text style={styles.name}>{ name }</Text>
@@ -61,7 +63,7 @@ export default class ImageInfo extends Component {
         </View>
       </TouchableHighlight>
       <TouchableHighlight style={styles.option} underlayColor="transparent" onPress={() => onMenuPress(src)}>
-        <Image style={styles.option} source={Options} />
+        <Image style={styles.menu} source={Options} />
       </TouchableHighlight>
     </View>
   }
@@ -74,6 +76,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
+    borderBottomColor: '#eee',
+    borderBottomWidth: .5,
   },
   fill: {
     flex: 1,
@@ -86,13 +90,19 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 14,
-    color: '#555',
+    color: '#81848B',
   },
   desc: {
     fontSize: 10,
     fontWeight: '500',
   },
   option: {
+    width: 26,
+    height: 54,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  menu: {
     width: 26,
     height: 26,
   },
