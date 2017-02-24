@@ -3,9 +3,13 @@ import React from 'react';
 
 import {
   TouchableNativeFeedback,
-  TouchableWithoutFeedback,
+  TouchableOpacity,
   Platform,
 } from 'react-native';
+
+function TouchableWithoutFeedback (props) {
+  return <TouchableOpacity activeOpacity={1} focusedOpacity={1} { ...props } />
+}
 
 const Touchable = Platform.select({
   ios: () => TouchableWithoutFeedback,
