@@ -43,8 +43,8 @@ export default class Tab extends Component {
     }
   }
 
-  componentWillReceiveProps({ isActive }) {
-    const { isActive: prevIsActive } = this.props;
+  componentDidUpdate({ isActive: prevIsActive }) {
+    const { isActive } = this.props;
     if ( prevIsActive !== isActive ) {
       InteractionManager.runAfterInteractions(() => {
         setTimeout(_ => {
