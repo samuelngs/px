@@ -1,8 +1,9 @@
 
 import React, { Component } from 'react';
-import { ListView, StyleSheet, Dimensions, InteractionManager } from 'react-native';
+import { View, ListView, RefreshControl, StyleSheet, Dimensions, InteractionManager } from 'react-native';
 import { LazyloadListView } from 'react-native-lazyload';
 
+import ProgressView from 'px/components/ProgressView';
 import ImageItem from './ImageItem';
 
 import offset from './offset';
@@ -22,9 +23,12 @@ export default class ImageList extends Component {
       left: 0,
       right: 0,
     },
+    children: null,
     onImagePress: () => { },
     onMenuPress: () => { },
     onAuthorPress: () => { },
+    onRefresh: complete => complete(),
+    onLoadMore: complete => complete(),
   }
 
   static propTypes = {
@@ -40,12 +44,17 @@ export default class ImageList extends Component {
       left: React.PropTypes.number,
       right: React.PropTypes.number,
     }),
+    children: React.PropTypes.element,
     onImagePress: React.PropTypes.func,
     onMenuPress: React.PropTypes.func,
     onAuthorPress: React.PropTypes.func,
+    onRefresh: React.PropTypes.func,
+    onLoadMore: React.PropTypes.func,
   }
 
   state = {
+    refreshing: false,
+    fetching: false,
     dimensions: {
       height: Dimensions.get('window').height,
       width: Dimensions.get('window').width,
@@ -55,6 +64,7 @@ export default class ImageList extends Component {
       width: Dimensions.get('window').width,
     },
     dataSource: new ListView.DataSource({
+      sectionHeaderHasChanged: (s1, s2) => s1 !== s2,
       rowHasChanged: (r1, r2) => {
         const {
           dimensions: { width: cw, height: ch },
@@ -67,6 +77,10 @@ export default class ImageList extends Component {
 
   initialDataSource(images) {
     const { dataSource } = this.state;
+    const { children } = this.props;
+    if ( children ) {
+      return this.setState({ dataSource: dataSource.cloneWithRowsAndSections({ images }) });
+    }
     return this.setState({ dataSource: dataSource.cloneWithRows(images) });
   }
 
@@ -77,9 +91,13 @@ export default class ImageList extends Component {
     });
   }
 
-  componentWillReceiveProps({ images }) {
-    const { images: prevImages } = this.props;
-    if ( images.length !== prevImages.length ) {
+  componentWillReceiveProps({ images, children }) {
+    const { images: prevImages, children: prevChildren } = this.props;
+    if (
+        images.length !== prevImages.length
+        || children === null && prevChildren !== null
+        || children !== null && prevChildren === null
+    ) {
       this.initialDataSource(images);
     }
   }
@@ -100,40 +118,79 @@ export default class ImageList extends Component {
     });
   }
 
+  onRefresh() {
+    const { refreshing } = this.state;
+    const { onRefresh } = this.props;
+    if ( refreshing ) return;
+    this.setState({ refreshing: true });
+    onRefresh(() => {
+      this.setState({ refreshing: false });
+    });
+  }
+
+  onLoadMore() {
+    const { fetching } = this.state;
+    const { onLoadMore } = this.props;
+    if ( fetching ) return;
+    this.setState({ fetching: true });
+    onLoadMore(() => {
+      this.setState({ fetching: false });
+    });
+  }
+
   renderRow(src) {
     const { id, route, padding, radius, onAuthorPress, onMenuPress, onImagePress } = this.props;
     const { dimensions } = this.state;
     return <ImageItem host={id} route={route} src={src} dimensions={dimensions} padding={padding} radius={radius} onAuthorPress={onAuthorPress} onMenuPress={onMenuPress} onImagePress={onImagePress} />
   }
 
+  renderSectionHeader() {
+    const { children } = this.props;
+    return children;
+  }
+
+  renderFooter() {
+    return <ProgressView style={{ paddingTop: 10 }} />
+  }
+
   render() {
-    const { dataSource, dimensions } = this.state;
+    const { refreshing, fetching, dataSource, dimensions } = this.state;
     const { id, images, showsScrollIndicator, offset: preLayoutOffset } = this.props;
     const layoutOffset = { top: 0, bottom: 0, left: 0, right: 0, ...preLayoutOffset };
-    return <LazyloadListView
-      name={id}
-      stickyHeaderIndices={[]}
-      enableEmptySections={true}
-      contentContainerStyle={{ paddingBottom: layoutOffset.bottom }}
-      initialListSize={images.length}
-      onEndReachedThreshold={0}
-      pageSize={0}
-      renderScrollComponent={() => null}
-      scrollRenderAheadDistance={100}
-      style={[styles.container, { paddingTop: offset + layoutOffset.top }]}
-      removeClippedSubviews={true}
-      showsHorizontalScrollIndicator={showsScrollIndicator}
-      showsVerticalScrollIndicator={showsScrollIndicator}
-      scrollIndicatorInsets={{ top: offset + layoutOffset.top, bottom: layoutOffset.bottom }}
-      onLayout={(e) => this.componentLayoutUpdate(e)}
-      dataSource={dataSource}
-      renderRow={data => this.renderRow(data)}
-    />
+    return <View style={[styles.base, { paddingTop: offset + layoutOffset.top, paddingBottom: layoutOffset.bottom }]}>
+      <LazyloadListView
+        name={id}
+        enableEmptySections={true}
+        pageSize={1}
+        dataSource={dataSource}
+        initialListSize={images.length}
+        stickyHeaderIndices={[]}
+        style={[styles.container]}
+        removeClippedSubviews={true}
+        scrollRenderAheadDistance={300}
+        showsHorizontalScrollIndicator={showsScrollIndicator}
+        showsVerticalScrollIndicator={showsScrollIndicator}
+        onLayout={(e) => this.componentLayoutUpdate(e)}
+        renderScrollComponent={() => null}
+        renderRow={data => this.renderRow(data)}
+        renderSectionHeader={() => this.renderSectionHeader()}
+        renderFooter={fetching ? () => this.renderFooter() : null}
+        refreshControl={<RefreshControl
+          refreshing={refreshing}
+          onRefresh={() => this.onRefresh()}
+        />}
+        onEndReached={() => this.onLoadMore()}
+        onEndReachedThreshold={100}
+      />
+    </View>
   }
 
 }
 
 const styles = StyleSheet.create({
+  base: {
+    flex: 1,
+  },
   container: {
     flex: 1,
   },

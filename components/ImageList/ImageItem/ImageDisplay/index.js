@@ -38,7 +38,8 @@ export default class ImageDisplay extends Component {
     const { host, route, src, dimensions: { width: screenWidth }, padding, radius, onPress } = this.props;
     const { color, width: imageWidth, height: imageHeight, urls: { regular: imageURL } } = src;
     const targetWidth = screenWidth - padding * 2;
-    const targetHeight = targetWidth / imageWidth * imageHeight;
+    // const targetHeight = targetWidth / imageWidth * imageHeight;
+    const targetHeight = targetWidth;
     return <Touchable style={{ marginLeft: padding, marginRight: padding }} underlayColor="transparent" onPress={() => onPress(src)}>
       <ProgressiveTransitionImage name={src.id} route={route} source={{ uri: src.urls.regular }} wrapper={LazyloadView} mask={true} options={{ host, style: { width: targetWidth, height: targetHeight }}} style={{ width: targetWidth, height: targetHeight, borderRadius: radius }} containerStyle={{ width: targetWidth, height: targetHeight, backgroundColor: src.color, borderRadius: radius }} />
     </Touchable>

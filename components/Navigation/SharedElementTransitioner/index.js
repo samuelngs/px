@@ -7,7 +7,6 @@ import {
   Text,
   Animated,
   StyleSheet,
-  Dimensions,
   UIManager,
   InteractionManager,
 } from 'react-native';
