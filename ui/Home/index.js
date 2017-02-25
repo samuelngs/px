@@ -46,10 +46,10 @@ export default class Home extends Component {
     actionbar: {
       center: navigation => <TouchableHighlight style={styles.actionBarButton} underlayColor="transparent" onPress={() => {
         if ( !navigation.state.params ) {
-          return navigation.setParams({ display: 'list' });
+          return navigation.setParams({ display: 'grid' });
         }
         if ( !navigation.state.params.display ) {
-          return navigation.setParams({ display: 'list' });
+          return navigation.setParams({ display: 'grid' });
         }
         const { state: { params: { display } } } = navigation;
         navigation.setParams({ display: display === 'grid' ? 'list' : 'grid' })
@@ -60,6 +60,8 @@ export default class Home extends Component {
   }
 
   state = {
+    page: 1,
+    type: 'latest',
     photos: [ ],
   }
 
@@ -70,14 +72,42 @@ export default class Home extends Component {
     this.onImagePressed = this.onImagePressed.bind(this);
     this.onActionMenuPressed = this.onActionMenuPressed.bind(this);
     this.onActionMenuCancelled = this.onActionMenuCancelled.bind(this);
+    this.onRefresh = this.onRefresh.bind(this);
+    this.onLoadMore = this.onLoadMore.bind(this);
   }
 
   componentDidMount() {
+    this.fetch();
+  }
+
+  fetch(complete) {
     const { unsplash } = this.context;
+    const { page, type, photos } = this.state;
     unsplash
       .photos
-      .listPhotos(1, 30, 'latest')
-      .then(photos => this.setState({ photos }));
+      .listPhotos(page, 30, type)
+      .then(images => {
+        if ( page === 1 ) {
+          return this.setState({ photos: images });
+        }
+        return this.setState({ photos: [ ...photos, ...images ] });
+      })
+      .then(_ => {
+        if ( typeof complete === 'function' ) {
+          complete();
+        }
+      });
+  }
+
+  onRefresh(complete) {
+    this.setState({ page: 1 }, () => this.fetch(complete));
+  }
+
+  onLoadMore(complete) {
+    console.log('load more');
+    const { page: prev } = this.state;
+    const page = prev + 1;
+    this.setState({ page }, () => this.fetch(complete));
   }
 
   onLeftButtonPressed() {
@@ -122,10 +152,10 @@ export default class Home extends Component {
   render() {
     const { photos } = this.state;
     const { navigation: { state: { routeName, params = { } } } } = this.props;
-    const { display = 'grid' } = params;
+    const { display = 'list' } = params;
     return <View style={styles.container}>
       { display === 'grid' && <ImageGrid route={routeName} images={photos} radius={2} columnGap={3} offset={{ bottom: 46 }} onPress={this.onImagePressed} /> }
-      { display === 'list' && <ImageList route={routeName} images={photos} padding={0} radius={0} listGap={3} offset={{ bottom: 46 }} onAuthorPress={this.onAuthorPressed} onMenuPress={this.onMenuPressed} onImagePress={this.onImagePressed} /> }
+      { display === 'list' && <ImageList route={routeName} images={photos} padding={0} radius={0} listGap={3} offset={{ bottom: 46 }} onAuthorPress={this.onAuthorPressed} onMenuPress={this.onMenuPressed} onImagePress={this.onImagePressed} onRefresh={this.onRefresh} onLoadMore={this.onLoadMore} /> }
       <ActionSheet ref={n => this.as = n} onCancel={this.onActionMenuCancelled}>
         <ActionMenu id="share" text="Copy Share URL" onPress={this.onActionMenuPressed} />
         <ActionMenu id="wallpaper" text="Set As Wallpaper" onPress={this.onActionMenuPressed} />

@@ -36,7 +36,8 @@ export default class Photo extends Component {
   render() {
     const { navigation: { state: { routeName, params: { photo: src } } } } = this.props;
     const { width } = Dimensions.get('window');
-    const height = width / src.width * src.height;
+    const height = width;
+    // const height = width / src.width * src.height;
     // const height = 300;
     return <View style={styles.container}>
       <Touchable onPress={() => this.onBack()}>
