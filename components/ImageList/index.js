@@ -55,6 +55,7 @@ export default class ImageList extends Component {
   state = {
     refreshing: false,
     fetching: false,
+    lock: true,
     dimensions: {
       height: Dimensions.get('window').height,
       width: Dimensions.get('window').width,
@@ -88,6 +89,7 @@ export default class ImageList extends Component {
     InteractionManager.runAfterInteractions(() => {
       const { images } = this.props;
       this.initialDataSource(images);
+      setTimeout(_ => this.state.lock = false, 1000);
     });
   }
 
@@ -129,9 +131,9 @@ export default class ImageList extends Component {
   }
 
   onLoadMore() {
-    const { fetching } = this.state;
+    const { fetching, lock } = this.state;
     const { onLoadMore } = this.props;
-    if ( fetching ) return;
+    if ( fetching || lock ) return;
     this.setState({ fetching: true });
     onLoadMore(() => {
       this.setState({ fetching: false });
@@ -161,11 +163,11 @@ export default class ImageList extends Component {
       <LazyloadListView
         name={id}
         enableEmptySections={true}
-        pageSize={1}
+        pageSize={images.length}
         dataSource={dataSource}
         initialListSize={images.length}
         stickyHeaderIndices={[]}
-        style={[styles.container]}
+        style={styles.container}
         removeClippedSubviews={true}
         scrollRenderAheadDistance={300}
         showsHorizontalScrollIndicator={showsScrollIndicator}
