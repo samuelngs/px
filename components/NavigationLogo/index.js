@@ -17,6 +17,7 @@ export default class NavigationLogo extends Component {
   }
 
   componentDidMount() {
+    this._mount = true;
     InteractionManager.runAfterInteractions(() => {
       setTimeout(_ => {
         Animated.timing(
@@ -25,9 +26,13 @@ export default class NavigationLogo extends Component {
             toValue: 0,
             duration: 250,
           }
-        ).start(() => this.setState({ tabview: true }));
+        ).start(() => this._mount && this.setState({ tabview: true }));
       }, 250);
     });
+  }
+
+  componentWillUnmount() {
+    this._mount = false;
   }
 
   renderTabList() {

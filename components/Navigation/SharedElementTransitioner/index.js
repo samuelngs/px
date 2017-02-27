@@ -4,11 +4,10 @@ import React, { Component } from 'react';
 import {
   Easing,
   View,
-  Text,
   Animated,
   StyleSheet,
+  StatusBar,
   UIManager,
-  InteractionManager,
 } from 'react-native';
 
 import {
@@ -124,11 +123,13 @@ class SharedElementTransitioner extends Component {
   }
 
   _render(props, prevProps) {
+    const statusbar = this._renderStatusBar(props, prevProps);
     const scenes = props.scenes.map(scene => this._renderScene({ ...props, scene }));
     const overlay = this._renderOverlay(props, prevProps);
     const header = this._renderHeader(props, prevProps);
     const actionbar = this._renderActionbar(props, prevProps);
     return <View style={styles.scenes}>
+      {statusbar}
       {scenes}
       {overlay}
       {header}
@@ -249,6 +250,27 @@ class SharedElementTransitioner extends Component {
     return { left, top, right, bottom, width, height };
   }
 
+  _renderStatusBar(props, prevProps) {
+    const {
+      animated = true,
+      hidden = false,
+      translucent = true,
+      showHideTransition = 'fade',
+      networkActivityIndicatorVisible = false,
+      backgroundColor = 'transparent',
+      barStyle = 'default',
+    } = this._getScreenConfig(props, 'statusbar');
+    return <StatusBar
+      animated={animated}
+      hidden={hidden}
+      translucent={translucent}
+      showHideTransition={showHideTransition}
+      networkActivityIndicatorVisible={networkActivityIndicatorVisible}
+      backgroundColor={backgroundColor}
+      barStyle={barStyle}
+    />
+  }
+
   _renderActionbar(props, prevProps) {
     const { left, right, center } = this._getScreenConfig(props, 'actionbar');
     const { position, scene, progress } = props;
@@ -293,6 +315,7 @@ class SharedElementTransitioner extends Component {
     const { router } = this.props;
     const { position, scene, progress } = props;
     const { index } = scene;
+    const navigation = this._getChildNavigation(scene);
     const style = this._getHeaderStyle(props, prevProps);
     return <Header
       {...props}
@@ -305,15 +328,15 @@ class SharedElementTransitioner extends Component {
       onNavigateBack={() => this.props.navigation.goBack(null)}
       renderLeftComponent={props => {
         const { left } = this._getScreenConfig(props, 'header');
-        return left;
+        return typeof left === 'function' ? left(navigation) : left;
       }}
       renderRightComponent={props => {
         const { right } = this._getScreenConfig(props, 'header');
-        return right;
+        return typeof right === 'function' ? right(navigation) : right;
       }}
       renderTitleComponent={props => {
         const { title } = this._getScreenConfig(props, 'header');
-        return title;
+        return typeof title === 'function' ? title(navigation) : title;
       }}
     />
   }
