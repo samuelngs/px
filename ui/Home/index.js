@@ -54,8 +54,11 @@ export default class Home extends Component {
         const { state: { params: { display } } } = navigation;
         navigation.setParams({ display: display === 'grid' ? 'list' : 'grid' })
       }}>
-        <Image style={[styles.actionBarImage]} source={GridImage} />
+        <Image style={[styles.actionBarImage]} source={navigation.state.params && navigation.state.params.display === 'grid' ? GridImage : ListImage} />
       </TouchableHighlight>
+    },
+    statusbar: {
+      barStyle: 'dark-content',
     },
   }
 
@@ -104,30 +107,27 @@ export default class Home extends Component {
   }
 
   onLoadMore(complete) {
-    console.log('load more');
     const { page: prev } = this.state;
     const page = prev + 1;
     this.setState({ page }, () => this.fetch(complete));
   }
 
-  onLeftButtonPressed() {
-    console.log('Home left button pressed');
-  }
-
-  onRightButtonPressed() {
-    console.log('Home right button pressed');
-  }
-
-  onPush() {
-    const { navigator } = this.props;
-    navigator.push('photo');
-  }
-
   onImagePressed(photo) {
-    const { urls: { regular } } = photo;
+    const { id, urls: { regular } } = photo;
     const { navigation: { navigate } } = this.props;
-    return Image.prefetch(regular).then(() => {
-      return navigate('photo', { photo });
+    const { unsplash } = this.context;
+    Promise.all([
+      unsplash
+        .photos
+        .getPhoto(id),
+      Image
+        .prefetch(regular),
+    ]).then(([ details, prefetch ]) => {
+      return navigate('photo', {
+        photo,
+        details,
+      });
+    }).catch(err => {
     });
   }
 
